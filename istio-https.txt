@@ -1,0 +1,35 @@
+#First way
+kubect1 create -n istio-system secret generic istio-ingressgateway-ca-certs--from-file=‹cacertfilepath»
+kubect1 create -n istio-system secret tls istio-ingressgateway-certs -key <key path» --cert ‹cert path>
+#Second way
+# Create a secret with SSL certificate/key pair and CA certificate
+$ kubect1 create secret generic ingress-mtls-credential -n istio-system
+--from-file=key=/path-to-key-file.key
+--from-file=cert=/path-to-cert-file.crt
+--from-file=cacert=/path-to-ca-file.crt
+
+apiVersion: networking.istio.io/vlbetal
+kind: Gateway
+metadata:
+	name: gateway-ingress
+	namespace: istio-system
+spec:
+selector:
+	istio: ingressgateway
+servers:
+hosts:
+	smart-services-dev.aks.azure.ubsdev.net
+port:
+	name: https
+	number: 443
+	protocol: HTTPS
+#for first way
+tls:
+	caCertificates:/etc/istio/ingressgateway-ca-certs/spgsmartdevcacerts.crt
+mode: MUTUAL
+	privateKey:/etc/istio/ingressgateway-certs/tls.key
+	serverCertificate:/etc/istio/ingressgateway-certs/tls.crt
+#for second way
+tls:
+	credentialName: ingress-mtls-credential
+mode: MUTUAL
